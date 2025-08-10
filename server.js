@@ -2,18 +2,28 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const sqlite3 = require("sqlite3").verbose();
 const path = require("path");
+const session = require("express-session");
 
 const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Session 設定
+app.use(session({
+  secret: "your_secret_key_123", // 改成安全字串
+  resave: false,
+  saveUninitialized: false,
+}));
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 
-// 建立資料庫
+// 資料庫連線
 const db = new sqlite3.Database("./users.db", (err) => {
   if (err) console.error(err);
-  console.log("資料庫已連線");
+  else console.log("資料庫已連線");
 });
 
-// 建立 users 資料表
+// 建表
 db.run(`CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT UNIQUE,
@@ -31,7 +41,7 @@ db.get(`SELECT * FROM users WHERE username = ?`, ["albert_admin"], (err, row) =>
   }
 });
 
-// 首頁跳轉到登入頁
+// 首頁導向登入頁
 app.get("/", (req, res) => {
   res.redirect("/login.html");
 });
@@ -54,15 +64,32 @@ app.post("/login", (req, res) => {
     if (!user) {
       return res.send(`<script>alert("帳號或密碼錯誤"); window.location.href='/login.html';</script>`);
     }
+
+    // 設定 Session
+    req.session.user = user.username;
+
     if (username === "albert_admin") {
-      return res.redirect("/admin");
+      res.redirect("/admin");
+    } else {
+      res.redirect("/user");
     }
-    res.send(`<script>alert("登入成功，歡迎 ${username}"); window.location.href='/user.html';</script>`);
   });
 });
 
-// 後台頁面（管理員）
+// 用戶大廳頁面 (需登入)
+app.get("/user", (req, res) => {
+  if (!req.session.user || req.session.user === "albert_admin") {
+    return res.redirect("/login.html");
+  }
+  res.sendFile(path.join(__dirname, "public", "user.html"));
+});
+
+// 管理員後台頁面 (需登入且是管理員)
 app.get("/admin", (req, res) => {
+  if (!req.session.user || req.session.user !== "albert_admin") {
+    return res.redirect("/login.html");
+  }
+
   db.all(`SELECT * FROM users`, [], (err, rows) => {
     if (err) return res.status(500).send("資料庫錯誤");
 
@@ -120,6 +147,11 @@ app.get("/admin", (req, res) => {
         <input type="text" name="password" placeholder="密碼" required>
         <button class="btn-add">新增</button>
       </form>
+
+      <form action="/logout" method="POST" style="margin-top: 20px;">
+        <button style="background:#d9534f; color:white; padding:10px 15px; border:none; border-radius:5px; cursor:pointer;">登出</button>
+      </form>
+
       <script>
         function togglePassword(id, realPwd) {
           let span = document.getElementById('pwd-' + id);
@@ -138,8 +170,12 @@ app.get("/admin", (req, res) => {
   });
 });
 
-// 新增用戶
+// 新增用戶 (管理員用)
 app.post("/add", (req, res) => {
+  if (!req.session.user || req.session.user !== "albert_admin") {
+    return res.redirect("/login.html");
+  }
+
   const { username, password } = req.body;
   db.run(`INSERT INTO users (username, password) VALUES (?, ?)`, [username, password], (err) => {
     if (err) {
@@ -149,33 +185,40 @@ app.post("/add", (req, res) => {
   });
 });
 
-// 刪除用戶
+// 刪除用戶 (管理員用)
 app.post("/delete", (req, res) => {
+  if (!req.session.user || req.session.user !== "albert_admin") {
+    return res.redirect("/login.html");
+  }
+
   const { id } = req.body;
   db.run(`DELETE FROM users WHERE id = ?`, [id], (err) => {
     res.redirect("/admin");
   });
 });
 
-// 重設密碼
+// 重設密碼 (管理員用)
 app.post("/reset", (req, res) => {
+  if (!req.session.user || req.session.user !== "albert_admin") {
+    return res.redirect("/login.html");
+  }
+
   const { id, newPassword } = req.body;
   db.run(`UPDATE users SET password = ? WHERE id = ?`, [newPassword, id], (err) => {
     res.redirect("/admin");
   });
 });
 
-//用戶登出
-app.post('/logout', (req, res) => {
+// 登出
+app.post("/logout", (req, res) => {
   req.session.destroy(() => {
-    res.clearCookie('connect.sid');
+    res.clearCookie("connect.sid");
     res.sendStatus(200);
   });
 });
 
-//部屬完成
-app.listen(3000, () => console.log("伺服器已啟動：http://localhost:3000"));
-
-
+app.listen(PORT, () => {
+  console.log(`伺服器已啟動：http://localhost:${PORT}`);
+});
 
 
