@@ -54,6 +54,14 @@
   <button onclick="logout()">登出</button>
 
   <script>
+    if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js').then(() => {
+    console.log('Service Worker 註冊成功');
+  }).catch(err => {
+    console.log('Service Worker 註冊失敗:', err);
+  });
+}
+
     function logout() {
       fetch('/logout', { method: 'POST' })
         .then(() => {
