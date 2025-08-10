@@ -57,7 +57,7 @@ app.post("/login", (req, res) => {
     if (username === "albert_admin") {
       return res.redirect("/admin");
     }
-    res.send(`<script>alert("登入成功，歡迎 ${username}"); window.location.href='/login.html';</script>`);
+    res.send(`<script>alert("登入成功，歡迎 ${username}"); window.location.href='/user.html';</script>`);
   });
 });
 
@@ -175,5 +175,6 @@ app.post('/logout', (req, res) => {
 
 //部屬完成
 app.listen(3000, () => console.log("伺服器已啟動：http://localhost:3000"));
+
 
 
