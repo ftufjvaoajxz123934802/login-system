@@ -165,5 +165,15 @@ app.post("/reset", (req, res) => {
   });
 });
 
+//用戶登出
+app.post('/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.clearCookie('connect.sid');
+    res.sendStatus(200);
+  });
+});
+
+//部屬完成
 app.listen(3000, () => console.log("伺服器已啟動：http://localhost:3000"));
+
 
