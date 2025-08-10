@@ -120,7 +120,6 @@ app.get("/admin", (req, res) => {
         <input type="text" name="password" placeholder="密碼" required>
         <button class="btn-add">新增</button>
       </form>
-      <button onclick="logout()">登出</button>
       <script>
         function togglePassword(id, realPwd) {
           let span = document.getElementById('pwd-' + id);
@@ -129,12 +128,6 @@ app.get("/admin", (req, res) => {
           } else {
             span.innerText = '******';
           }
-        }
-        function logout(){
-          fetch('/logout',{method:'Post'})
-            .then(() => {
-              window.location.herf = '/login.html';
-            });
         }
       </script>
     </body>
