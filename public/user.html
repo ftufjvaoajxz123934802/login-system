@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>用戶大廳</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      color: #333;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #d9534f;
+      border: none;
+      color: white;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #c9302c;
+    }
+    .video-container {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    iframe {
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>歡迎來到用戶大廳</h1>
+  <p>請欣賞以下影片</p>
+
+  <div class="video-container">
+    <iframe width="800" height="450" 
+            src="https://www.youtube.com/embed/AF_Ag8Jdf70" 
+            title="YouTube video player" 
+            frameborder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen></iframe>
+  </div>
+
+  <br>
+  <button onclick="logout()">登出</button>
+
+  <script>
+    function logout() {
+      fetch('/logout', { method: 'POST' })
+        .then(() => {
+          window.location.href = '/login.html';
+        });
+    }
+  </script>
+
+</body>
+</html>
